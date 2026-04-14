@@ -108,6 +108,24 @@ model PasswordResetOtp {
   @@map("password_reset_otps")
 }
 
+model Lead {
+  id          String    @id @default(cuid())
+  name        String
+  email       String?   @unique
+  phone       String?
+  company     String?
+  linkedinUrl String?
+  title       String?
+  source      String
+  score       Int       @default(0)
+  notes       String?
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("leads")
+}
+
 model ContactMessage {
   id        String   @id @default(cuid())
   firstName String
