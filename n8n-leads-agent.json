@@ -58,7 +58,7 @@
         "headerParameters": {
           "parameters": [
             { "name": "Content-Type", "value": "application/json" },
-            { "name": "X-Api-Key", "value": "={{ $env.APOLLO_API_KEY }}" }
+            { "name": "X-Api-Key", "value": "YOUR_APOLLO_API_KEY" }
           ]
         },
         "sendBody": true,
@@ -81,7 +81,7 @@
           "parameters": [
             { "name": "engine", "value": "google" },
             { "name": "q", "value": "site:linkedin.com/in CEO OR CTO \"business automation\" -job -jobs" },
-            { "name": "api_key", "value": "={{ $env.SERPAPI_KEY }}" },
+            { "name": "api_key", "value": "YOUR_SERPAPI_KEY" },
             { "name": "num", "value": "10" }
           ]
         },
@@ -194,7 +194,7 @@
         "queryParameters": {
           "parameters": [
             { "name": "email", "value": "={{ $json.email }}" },
-            { "name": "secret", "value": "={{ $env.N8N_API_SECRET }}" }
+            { "name": "secret", "value": "tectha-n8n-secret-2026" }
           ]
         },
         "options": { "response": { "response": { "neverError": true } } }
@@ -238,7 +238,7 @@
         "headerParameters": {
           "parameters": [
             { "name": "Content-Type", "value": "application/json" },
-            { "name": "x-api-secret", "value": "={{ $env.N8N_API_SECRET }}" }
+            { "name": "x-api-secret", "value": "tectha-n8n-secret-2026" }
           ]
         },
         "sendBody": true,
@@ -256,7 +256,7 @@
       "parameters": {
         "resource": "message",
         "operation": "sendMessage",
-        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "chatId": "1817463085",
         "text": "=🎯 *New Lead*\n\n👤 *Name:* {{ $json.name }}\n📧 *Email:* {{ $json.email ?? 'N/A' }}\n📱 *Phone:* {{ $json.phone ?? 'N/A' }}\n🏢 *Company:* {{ $json.company ?? 'N/A' }}\n💼 *Title:* {{ $json.title ?? 'N/A' }}\n📊 *Score:* {{ $json.score }}/100\n📌 *Source:* {{ $json.source }}\n💡 {{ $json.notes ?? '' }}",
         "additionalFields": { "parse_mode": "Markdown" }
       },
@@ -306,7 +306,7 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "authorization", "value": "={{ $env.FAST2SMS_API_KEY }}" },
+            { "name": "authorization", "value": "YOUR_FAST2SMS_API_KEY" },
             { "name": "Content-Type", "value": "application/json" }
           ]
         },
