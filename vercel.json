@@ -1,3 +1,8 @@
 {
-  "rootDirectory": "frontend"
+  "crons": [
+    { "path": "/api/cron/follow-up",      "schedule": "30 3 * * *"  },
+    { "path": "/api/cron/demo-reminder",  "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/weekly-summary", "schedule": "30 2 * * 1"  },
+    { "path": "/api/cron/daily-digest",   "schedule": "30 14 * * *" }
+  ]
 }
