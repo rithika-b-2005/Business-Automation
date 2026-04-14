@@ -207,22 +207,6 @@ exports.Prisma.PasswordResetOtpScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
-exports.Prisma.LeadScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  company: 'company',
-  linkedinUrl: 'linkedinUrl',
-  title: 'title',
-  source: 'source',
-  score: 'score',
-  notes: 'notes',
-  processedAt: 'processedAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.ContactMessageScalarFieldEnum = {
   id: 'id',
   firstName: 'firstName',
@@ -258,7 +242,6 @@ exports.Prisma.ModelName = {
   JobApplication: 'JobApplication',
   DemoBooking: 'DemoBooking',
   PasswordResetOtp: 'PasswordResetOtp',
-  Lead: 'Lead',
   ContactMessage: 'ContactMessage'
 };
 
