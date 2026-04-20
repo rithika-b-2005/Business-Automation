@@ -1,4 +1,4 @@
-import { parseAndScoreResume, ResumeScoreResult } from "./resume-scoring"
+import type { ResumeScoreResult } from "./resume-scoring"
 
 export interface JobStatus {
   id: string
@@ -45,6 +45,8 @@ class JobQueue {
 
       console.log(`[Job ${jobId}] Starting resume analysis...`)
 
+      // Dynamically import to avoid Turbopack module resolution issues
+      const { parseAndScoreResume } = await import("./resume-scoring")
       const result = await parseAndScoreResume(buffer, fileName, context)
 
       job.result = result
