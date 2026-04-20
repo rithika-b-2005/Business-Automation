@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendJobApplicationEmail, sendJobApplicationAck, sendInterviewInvite, sendApplicationRejection } from "@/lib/email"
 import { sendAdminWhatsApp } from "@/lib/whatsapp"
-import { parseAndScoreResume } from "@/lib/resume-scoring"
 
 function normalizePhone(value: string | null) {
   const digitsOnly = (value ?? "").replace(/\D/g, "")
@@ -66,6 +65,8 @@ export async function POST(request: Request) {
       resumeFilename = resumeFile.name
       try {
         console.log(`[jobs/apply] Parsing resume for ${email}: ${resumeFilename}, size: ${resumeFile.size}`)
+        // Dynamically import to avoid Turbopack module resolution issues
+        const { parseAndScoreResume } = await import("@/lib/resume-scoring")
         const result = await parseAndScoreResume(resumeBuffer, resumeFilename!, {
           companyName: "Tec Tha",
           jobTitle: job.title,
