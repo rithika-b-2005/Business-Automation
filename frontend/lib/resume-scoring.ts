@@ -1,12 +1,28 @@
-import Groq from "groq-sdk"
-import OpenAI from "openai"
 import { writeFileSync, unlinkSync, readFileSync } from "fs"
 import { join } from "path"
 import { randomBytes } from "crypto"
-import Tesseract from "tesseract.js"
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Lazy-load AI clients to avoid module resolution at build time
+let groq: any = null
+let openai: any = null
+
+function getGroq() {
+  if (!groq) {
+    // eslint-disable-next-line global-require
+    const Groq = require("groq-sdk").default
+    groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+  }
+  return groq
+}
+
+function getOpenAI() {
+  if (!openai) {
+    // eslint-disable-next-line global-require
+    const OpenAI = require("openai").default
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  }
+  return openai
+}
 
 export type ResumeScoreResult = {
   score: number
@@ -37,7 +53,7 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   try {
     // Write buffer to temp file for pdf-parse to read
     const tempFileName = `resume-${randomBytes(8).toString("hex")}.pdf`;
-    tempFilePath = join("/tmp", tempFileName);
+    tempFilePath = join(/*turbopackIgnore: true*/ "/tmp", tempFileName);
     writeFileSync(tempFilePath, buffer);
 
     // Use pdf-parse PDFParse class with file URL
@@ -81,7 +97,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
     // eslint-disable-next-line global-require
     const pdf2pic = require("pdf2pic");
 
-    tempImgDir = join("/tmp", `resume-imgs-${randomBytes(8).toString("hex")}`);
+    tempImgDir = join(/*turbopackIgnore: true*/ "/tmp", `resume-imgs-${randomBytes(8).toString("hex")}`);
 
     const options = {
       density: 150,
@@ -107,6 +123,10 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
       try {
         console.log(`Running OCR on page ${i + 1}/${maxPages}...`);
         const imagePath = pages[i].path;
+
+        // Lazy-load Tesseract to avoid build-time module resolution
+        // eslint-disable-next-line global-require
+        const Tesseract = require("tesseract.js");
 
         const ocrResult = await Tesseract.recognize(imagePath, "eng", {
           logger: (m: any) => {
@@ -151,7 +171,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
         if (fsModule.existsSync(tempImgDir)) {
           const files = fsModule.readdirSync(tempImgDir);
           for (const file of files) {
-            fsModule.unlinkSync(join(tempImgDir, file));
+            fsModule.unlinkSync(join(/*turbopackIgnore: true*/ tempImgDir, file));
           }
           fsModule.rmdirSync(tempImgDir);
         }
@@ -277,7 +297,7 @@ export async function scoreResumeWithOpenAI(
     throw new Error("OPENAI_API_KEY is not configured.")
   }
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: "gpt-4o-mini",
     temperature: 0.2,
     max_tokens: 600,
@@ -335,7 +355,7 @@ export async function scoreResumeWithGroq(
     throw new Error("GROQ_API_KEY is not configured.")
   }
 
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     model: "llama-3.1-8b-instant",
     temperature: 0.2,
     max_tokens: 600,
