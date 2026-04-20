@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogOut, LogIn, UserPlus } from "lucide-react"
+import { Menu, X, LogOut, LogIn, UserPlus, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import AskQuestion from "./AskQuestion"
 
 const NAV = [
   { label: "About",        href: "#about",        id: "about"        },
@@ -16,6 +17,8 @@ const NAV = [
   { label: "FAQ",          href: "#faq",          id: "faq"          },
 ]
 
+const AGENT_PATHS = ["/workflow", "/leads", "/marketing", "/sales"]
+
 export default function Header() {
     const [mobileOpen, setMobileOpen] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -23,9 +26,10 @@ export default function Header() {
     const pathname = usePathname()
 
     const hideNav = pathname === "/" || pathname === "/register"
+    const isAgentPage = AGENT_PATHS.some(p => pathname === p || pathname.startsWith(p))
 
     useEffect(() => {
-        const loggedInPaths = ["/landing", "/contact", "/explore", "/careers", "/careers/apply", "/demo"]
+        const loggedInPaths = ["/landing", "/contact", "/explore", "/careers", "/careers/apply", "/demo", ...AGENT_PATHS]
         setIsLoggedIn(loggedInPaths.some(p => pathname === p || pathname.startsWith(p)))
     }, [pathname])
 
@@ -99,6 +103,7 @@ export default function Header() {
 
                 {/* Right CTAs */}
                 <div className="hidden md:flex items-center gap-2.5 shrink-0">
+                    <AskQuestion buttonVariant="outline" />
                     {isLoggedIn ? (
                         <button
                             onClick={handleLogout}
@@ -167,6 +172,9 @@ export default function Header() {
                         </a>
                     ))}
                     <div className="flex gap-2 pt-3">
+                        <div onClick={() => setMobileOpen(false)}>
+                            <AskQuestion buttonVariant="outline" />
+                        </div>
                         {isLoggedIn ? (
                             <button
                                 onClick={() => { setMobileOpen(false); handleLogout() }}

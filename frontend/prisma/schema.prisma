@@ -8,17 +8,31 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String?  @unique
-  phone     String?  @unique
-  company   String?
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String         @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?        @unique
+  phone          String?        @unique
+  company        String?
+  password       String
+  role           String         @default("USER")
+  platformAccess String[]       @default([])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  refreshTokens  RefreshToken[]
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
 }
 
 model RegistrationOtp {
@@ -120,4 +134,109 @@ model ContactMessage {
   createdAt DateTime @default(now())
 
   @@map("contact_messages")
+}
+
+model Lead {
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String?   @unique
+  phone                 String?
+  company               String?
+  website               String?
+  title                 String?
+  location              String?
+  industry              String?
+  source                String    @default("form_generated")
+  linkedinUrl           String?
+  score                 Int?      @default(0)
+  icpLabel              String?
+  companyBio            String?
+  automationOpportunity String?
+  leadContext           String?
+  outreachLine          String?
+  emailSubject          String?
+  emailBody             String?
+  outreachStatus        String    @default("new")
+  notes                 String?
+  processedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("leads")
+}
+
+model MarketingLead {
+  id             String    @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  company        String?
+  website        String?
+  location       String?
+  industry       String?
+  source         String    @default("serper_maps")
+  score          Int?      @default(0)
+  icpLabel       String?
+  companyBio     String?
+  campaignIdea   String?
+  contentAngle   String?
+  adCopy         String?
+  emailSubject   String?
+  emailBody      String?
+  outreachStatus String    @default("new")
+  notes          String?
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("marketing_leads")
+}
+
+model SalesLead {
+  id              String    @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  website         String?
+  location        String?
+  industry        String?
+  source          String    @default("serper_maps")
+  score           Int?      @default(0)
+  icpLabel        String?
+  companyBio      String?
+  painPoint       String?
+  salesPitch      String?
+  proposalSummary String?
+  emailSubject    String?
+  emailBody       String?
+  outreachStatus  String    @default("new")
+  notes           String?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("sales_leads")
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  feedback  String
+  rating    Int
+  createdAt DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  question  String
+  answered  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("questions")
 }

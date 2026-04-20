@@ -53,13 +53,35 @@ export default function Testimonials() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!rating) { toast.error("Please select a star rating."); return }
+    if (!form.name.trim() || !form.role.trim() || !form.feedback.trim()) {
+      toast.error("All fields are required.")
+      return
+    }
+
     setLoading(true)
-    await new Promise(r => setTimeout(r, 800))
-    setLoading(false)
-    setOpen(false)
-    setForm({ name: "", role: "", feedback: "" })
-    setRating(0)
-    toast.success("Thank you! Your feedback has been submitted.")
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, rating }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to submit feedback.")
+        return
+      }
+
+      setOpen(false)
+      setForm({ name: "", role: "", feedback: "" })
+      setRating(0)
+      toast.success("Thank you! Your feedback has been submitted.")
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.")
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
