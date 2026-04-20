@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { jwtVerify } from "jose"
 
-const JWT_SECRET  = new TextEncoder().encode(process.env.JWT_SECRET!)
 const ACCESS_COOKIE  = "access_token"
 const REFRESH_COOKIE = "refresh_token"
+const JWT_SECRET  = new TextEncoder().encode(process.env.JWT_SECRET!)
 
 // Routes that do NOT require authentication
 const PUBLIC = [
@@ -36,6 +35,9 @@ function isProtected(pathname: string) {
 
 async function verifyJWT(token: string): Promise<{ valid: boolean; expired: boolean }> {
   try {
+    // Lazy-load jose to avoid build-time module resolution
+    // eslint-disable-next-line global-require
+    const { jwtVerify } = require("jose")
     await jwtVerify(token, JWT_SECRET)
     return { valid: true, expired: false }
   } catch (e: any) {
