@@ -61,7 +61,7 @@ function VerifyForm() {
       const data = await res.json()
       if (!res.ok) { toast.error(data.error ?? "Verification failed."); return }
       setDone(true)
-      setTimeout(() => router.push("/"), 2000)
+      setTimeout(() => router.push("/landing"), 2000)
     } catch {
       toast.error("Something went wrong. Please try again.")
     } finally {
@@ -95,7 +95,7 @@ function VerifyForm() {
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-[#20262D]">Account Created!</h2>
-                  <p className="text-sm text-[#333333] mt-1">Taking you to sign in…</p>
+                  <p className="text-sm text-[#333333] mt-1">Taking you to Landing page…</p>
                 </div>
                 <div className="flex gap-1.5 mt-1">
                   {[0, 1, 2].map((i) => (

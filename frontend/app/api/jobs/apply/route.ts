@@ -2,33 +2,11 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendJobApplicationEmail, sendJobApplicationAck, sendInterviewInvite, sendApplicationRejection } from "@/lib/email"
 import { sendAdminWhatsApp } from "@/lib/whatsapp"
-import { GoogleGenerativeAI } from "@google/generative-ai"
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>
+import { parseAndScoreResume } from "@/lib/resume-scoring"
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-async function scoreResumeAgainstJob(resumeText: string, jobDescription: string, jobSkills: string[]): Promise<{
-  score: number; strengths: string[]; gaps: string[]
-}> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-  const prompt = `You are a recruiter assistant. Compare the candidate's resume with the job description and required skills.
-
-JOB DESCRIPTION:
-${jobDescription}
-
-REQUIRED SKILLS: ${jobSkills.join(", ")}
-
-RESUME:
-${resumeText.slice(0, 6000)}
-
-Rate the match from 0-100 and return ONLY valid JSON (no markdown) in this exact format:
-{"score": 75, "strengths": ["strength 1", "strength 2"], "gaps": ["gap 1", "gap 2"]}`
-
-  const result = await model.generateContent(prompt)
-  const raw = result.response.text().trim()
-  const jsonStr = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim()
-  return JSON.parse(jsonStr)
+function normalizePhone(value: string | null) {
+  const digitsOnly = (value ?? "").replace(/\D/g, "")
+  return digitsOnly.length === 10 ? digitsOnly : null
 }
 
 export async function POST(request: Request) {
@@ -51,6 +29,11 @@ export async function POST(request: Request) {
     const coverLetter  = formData.get("coverLetter") as string | null
     const portfolio    = formData.get("portfolio") as string | null
     const resumeFile   = formData.get("resume") as File | null
+    const providedResumeText = formData.get("resumeText") as string | null
+    const providedMatchScore = formData.get("matchScore") as string | null
+    const providedStrengths = formData.get("strengths") as string | null
+    const providedGaps = formData.get("gaps") as string | null
+    const normalizedPhone = normalizePhone(phone)
 
     if (!jobId || !firstName || !lastName || !email) {
       return NextResponse.json(
@@ -59,48 +42,51 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!normalizedPhone) {
+      return NextResponse.json({ error: "Phone number must be exactly 10 digits." }, { status: 400 })
+    }
+
     const job = await prisma.job.findUnique({ where: { id: jobId } })
     if (!job) {
       return NextResponse.json({ error: "Job not found." }, { status: 404 })
     }
 
     // Parse resume PDF if provided
-    let resumeText: string | null = null
+    let resumeText: string | null = providedResumeText || null
     let resumeBuffer: Buffer | undefined
     let resumeFilename: string | undefined
+    let matchScore = providedMatchScore ? parseInt(providedMatchScore, 10) : 0
+    let strengths: string[] = providedStrengths ? JSON.parse(providedStrengths) : []
+    let gaps: string[] = providedGaps ? JSON.parse(providedGaps) : []
+    const hasResumeUpload = Boolean(resumeFile && resumeFile.size > 0)
 
-    if (resumeFile && resumeFile.size > 0) {
+    if (hasResumeUpload && resumeFile && !providedResumeText) {
       const arrayBuffer = await resumeFile.arrayBuffer()
       resumeBuffer = Buffer.from(arrayBuffer)
       resumeFilename = resumeFile.name
       try {
-        const parsed = await pdfParse(resumeBuffer)
-        resumeText = parsed.text
-      } catch (e) {
-        console.warn("[jobs/apply] PDF parse failed:", e)
-      }
-    }
+        console.log(`[jobs/apply] Parsing resume for ${email}: ${resumeFilename}, size: ${resumeFile.size}`)
+        const result = await parseAndScoreResume(resumeBuffer, resumeFilename!, {
+          companyName: "Tec Tha",
+          jobTitle: job.title,
+          jobDescription: job.description,
+          jobSkills: job.skills,
+        })
 
-    // AI match score
-    let matchScore = 0
-    let strengths: string[] = []
-    let gaps: string[] = []
-
-    if (resumeText) {
-      try {
-        const result = await scoreResumeAgainstJob(resumeText, job.description, job.skills)
+        resumeText = result.extractedText
         matchScore = result.score
-        strengths  = result.strengths
-        gaps       = result.gaps
+        strengths = result.strengths
+        gaps = result.gaps
+        console.log(`[jobs/apply] Resume parsed successfully for ${email}: score ${matchScore}, text length ${resumeText?.length}`)
       } catch (e) {
-        console.warn("[jobs/apply] Gemini scoring failed:", e)
+        console.error(`[jobs/apply] Resume parse/score failed for ${email}:`, e)
       }
     }
 
     const application = await prisma.jobApplication.create({
       data: {
         jobId, firstName, lastName, email,
-        phone: phone || null,
+        phone: normalizedPhone,
         city: city || null,
         country: country || null,
         linkedin: linkedin || null,
@@ -112,15 +98,15 @@ export async function POST(request: Request) {
         coverLetter: coverLetter || null,
         portfolio: portfolio || null,
         resumeText: resumeText || null,
-        matchScore: resumeText ? matchScore : null,
+        matchScore: hasResumeUpload ? matchScore : null,
       },
     })
 
-    const scoreLabel = resumeText ? `${matchScore}%` : "N/A (no resume)"
+    const scoreLabel = hasResumeUpload ? `${matchScore}%` : "N/A (no resume)"
     Promise.allSettled([
       // Admin notifications
-      sendJobApplicationEmail({ applicant: { firstName, lastName, email, phone }, job: { title: job.title }, matchScore, strengths, gaps, resumeBuffer, resumeFilename }),
-      sendAdminWhatsApp(`New Job Application\nRole: ${job.title}\nApplicant: ${firstName} ${lastName}\nEmail: ${email}${phone ? `\nPhone: ${phone}` : ""}\nAI Match Score: ${scoreLabel}${strengths.length ? `\nStrengths: ${strengths.slice(0, 2).join(", ")}` : ""}${gaps.length ? `\nGaps: ${gaps.slice(0, 2).join(", ")}` : ""}`),
+      sendJobApplicationEmail({ applicant: { firstName, lastName, email, phone: normalizedPhone }, job: { title: job.title }, matchScore, strengths, gaps, resumeBuffer, resumeFilename }),
+      sendAdminWhatsApp(`New Job Application\nRole: ${job.title}\nApplicant: ${firstName} ${lastName}\nEmail: ${email}${normalizedPhone ? `\nPhone: ${normalizedPhone}` : ""}\nAI Match Score: ${scoreLabel}${strengths.length ? `\nStrengths: ${strengths.slice(0, 2).join(", ")}` : ""}${gaps.length ? `\nGaps: ${gaps.slice(0, 2).join(", ")}` : ""}`),
       // Agent 3: acknowledgment to applicant
       sendJobApplicationAck(email, firstName, job.title),
       // Agent 4: auto interview invite if score > 70%

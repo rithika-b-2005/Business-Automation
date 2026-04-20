@@ -90,15 +90,54 @@ export default function FAQ() {
   const [form, setForm] = useState({ name: "", email: "", question: "" })
   const [loading, setLoading] = useState(false)
 
+  const isNameFilled = form.name.trim().length > 0
+  const isEmailFilled = form.email.trim().length > 0
+  const isQuestionFilled = form.question.trim().length > 0
+  const isFormComplete = isNameFilled && isEmailFilled && isQuestionFilled
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name || !form.email || !form.question) return
+
+    if (!isNameFilled) {
+      toast.error("Please enter your name.")
+      return
+    }
+    if (!isEmailFilled) {
+      toast.error("Please enter your email.")
+      return
+    }
+    if (!isQuestionFilled) {
+      toast.error("Please enter your question.")
+      return
+    }
+
     setLoading(true)
-    await new Promise(r => setTimeout(r, 800))
-    setLoading(false)
-    setDialogOpen(false)
-    setForm({ name: "", email: "", question: "" })
-    toast.success("Your question has been submitted. We'll get back to you soon.")
+    try {
+      console.log("[FAQ] Submitting question:", form)
+
+      const res = await fetch("/api/ask-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+
+      const data = await res.json()
+      console.log("[FAQ] Response:", data)
+
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to submit question.")
+        return
+      }
+
+      setDialogOpen(false)
+      setForm({ name: "", email: "", question: "" })
+      toast.success(data.message ?? "Thank you! Our team will respond shortly.")
+    } catch (err) {
+      console.error("[FAQ] Error:", err)
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -187,27 +226,40 @@ export default function FAQ() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Your name</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Your name
+                {!isNameFilled && <span className="text-red-500">*</span>}
+              </Label>
               <Input placeholder="Jane Smith" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="h-10 rounded-lg border border-[#e0e0e0] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#e0e0e0]" required />
+                className="h-10 rounded-lg border border-[#e0e0e0] focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Email address</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Email address
+                {!isEmailFilled && <span className="text-red-500">*</span>}
+              </Label>
               <Input type="email" placeholder="you@company.com" value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                className="h-10 rounded-lg border border-[#e0e0e0] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#e0e0e0]" required />
+                className="h-10 rounded-lg border border-[#e0e0e0] focus-visible:ring-0 focus-visible:ring-offset-0" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Your question</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Your question
+                {!isQuestionFilled && <span className="text-red-500">*</span>}
+              </Label>
               <Textarea placeholder="What would you like to know?" value={form.question}
                 onChange={e => setForm(f => ({ ...f, question: e.target.value }))}
-                className="rounded-lg border border-[#e0e0e0] min-h-[100px] resize-none focus:border-[#e0e0e0] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none" required />
+                className="rounded-lg border border-[#e0e0e0] min-h-[100px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0" />
             </div>
-            <Button type="submit" disabled={loading}
-              className="w-full rounded-xl font-semibold text-white text-sm"
-              style={{ background: "#276ef1" }}>
-              {loading ? "Submitting…" : "Submit Question"}
+            <Button type="submit" disabled={loading || !isFormComplete}
+              className="w-full rounded-xl font-semibold text-white text-sm transition-all"
+              style={{
+                background: isFormComplete ? "#276ef1" : "#d1d5db",
+                cursor: isFormComplete ? "pointer" : "not-allowed",
+                opacity: isFormComplete ? 1 : 0.6,
+              }}>
+              {loading ? "Submitting..." : "Submit Question"}
             </Button>
           </form>
         </DialogContent>

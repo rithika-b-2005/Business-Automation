@@ -266,7 +266,7 @@ export async function extractResumeTextFromFile(
 
 // Keep old function for backwards compatibility
 export async function extractResumeTextFromPdf(buffer: Buffer): Promise<string> {
-  return extractTextFromFile(buffer, "resume.pdf");
+  return extractResumeTextFromFile(buffer, "resume.pdf");
 }
 
 export async function scoreResumeWithOpenAI(
