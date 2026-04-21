@@ -8,6 +8,7 @@ let openai: any = null
 
 async function getGroq() {
   if (!groq) {
+    // @ts-ignore - dynamic import to avoid Turbopack static analysis
     const { default: Groq } = await import(/* turbopackIgnore: true */ "groq-sdk")
     groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
   }
@@ -16,6 +17,7 @@ async function getGroq() {
 
 async function getOpenAI() {
   if (!openai) {
+    // @ts-ignore - dynamic import to avoid Turbopack static analysis
     const { default: OpenAI } = await import(/* turbopackIgnore: true */ "openai")
     openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   }
@@ -92,6 +94,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
     console.log("Starting OCR extraction for scanned/image-based PDF...");
 
     // Use pdf2pic to convert PDF buffer to images
+    // @ts-ignore - dynamic import to avoid Turbopack static analysis
     const pdf2pic = await import(/* turbopackIgnore: true */ "pdf2pic");
 
     tempImgDir = join(/*turbopackIgnore: true*/ "/tmp", `resume-imgs-${randomBytes(8).toString("hex")}`);
@@ -122,6 +125,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
         const imagePath = pages[i].path;
 
         // Lazy-load Tesseract to avoid build-time module resolution
+        // @ts-ignore - dynamic import to avoid Turbopack static analysis
         const Tesseract = await import(/* turbopackIgnore: true */ "tesseract.js");
 
         const ocrResult = await Tesseract.recognize(imagePath, "eng", {
@@ -184,6 +188,7 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
 
     // Use mammoth.js if available, else use a fallback
     try {
+      // @ts-ignore - dynamic import to avoid Turbopack static analysis
       const mammoth = await import(/* turbopackIgnore: true */ "mammoth");
       const result = await mammoth.extractRawText({ buffer });
 
@@ -196,6 +201,7 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
     }
 
     // Fallback: try to extract text from DOCX as ZIP and parse XML
+    // @ts-ignore - dynamic import to avoid Turbopack static analysis
     const { default: JSZip } = await import(/* turbopackIgnore: true */ "jszip");
     const zip = new JSZip();
     await zip.loadAsync(buffer);

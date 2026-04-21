@@ -36,6 +36,7 @@ function isProtected(pathname: string) {
 async function verifyJWT(token: string): Promise<{ valid: boolean; expired: boolean }> {
   try {
     // Lazy-load jose to avoid build-time module resolution
+    // @ts-ignore - dynamic import to avoid Turbopack static analysis
     const { jwtVerify } = await import(/* turbopackIgnore: true */ "jose")
     await jwtVerify(token, JWT_SECRET)
     return { valid: true, expired: false }
