@@ -128,8 +128,18 @@ exports.Prisma.UserScalarFieldEnum = {
   phone: 'phone',
   company: 'company',
   password: 'password',
+  role: 'role',
+  platformAccess: 'platformAccess',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.RegistrationOtpScalarFieldEnum = {
@@ -219,6 +229,101 @@ exports.Prisma.ContactMessageScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.LeadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  company: 'company',
+  website: 'website',
+  title: 'title',
+  location: 'location',
+  industry: 'industry',
+  source: 'source',
+  linkedinUrl: 'linkedinUrl',
+  score: 'score',
+  icpLabel: 'icpLabel',
+  companyBio: 'companyBio',
+  automationOpportunity: 'automationOpportunity',
+  leadContext: 'leadContext',
+  outreachLine: 'outreachLine',
+  emailSubject: 'emailSubject',
+  emailBody: 'emailBody',
+  outreachStatus: 'outreachStatus',
+  notes: 'notes',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MarketingLeadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  company: 'company',
+  website: 'website',
+  location: 'location',
+  industry: 'industry',
+  source: 'source',
+  score: 'score',
+  icpLabel: 'icpLabel',
+  companyBio: 'companyBio',
+  campaignIdea: 'campaignIdea',
+  contentAngle: 'contentAngle',
+  adCopy: 'adCopy',
+  emailSubject: 'emailSubject',
+  emailBody: 'emailBody',
+  outreachStatus: 'outreachStatus',
+  notes: 'notes',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalesLeadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  company: 'company',
+  website: 'website',
+  location: 'location',
+  industry: 'industry',
+  source: 'source',
+  score: 'score',
+  icpLabel: 'icpLabel',
+  companyBio: 'companyBio',
+  painPoint: 'painPoint',
+  salesPitch: 'salesPitch',
+  proposalSummary: 'proposalSummary',
+  emailSubject: 'emailSubject',
+  emailBody: 'emailBody',
+  outreachStatus: 'outreachStatus',
+  notes: 'notes',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TestimonialScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  role: 'role',
+  feedback: 'feedback',
+  rating: 'rating',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.QuestionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  question: 'question',
+  answered: 'answered',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -237,12 +342,18 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  RefreshToken: 'RefreshToken',
   RegistrationOtp: 'RegistrationOtp',
   Job: 'Job',
   JobApplication: 'JobApplication',
   DemoBooking: 'DemoBooking',
   PasswordResetOtp: 'PasswordResetOtp',
-  ContactMessage: 'ContactMessage'
+  ContactMessage: 'ContactMessage',
+  Lead: 'Lead',
+  MarketingLead: 'MarketingLead',
+  SalesLead: 'SalesLead',
+  Testimonial: 'Testimonial',
+  Question: 'Question'
 };
 
 /**
