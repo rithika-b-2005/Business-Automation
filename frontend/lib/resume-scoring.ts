@@ -6,19 +6,17 @@ import { randomBytes } from "crypto"
 let groq: any = null
 let openai: any = null
 
-function getGroq() {
+async function getGroq() {
   if (!groq) {
-    // eslint-disable-next-line global-require
-    const Groq = require("groq-sdk").default
+    const { default: Groq } = await import(/* turbopackIgnore: true */ "groq-sdk")
     groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
   }
   return groq
 }
 
-function getOpenAI() {
+async function getOpenAI() {
   if (!openai) {
-    // eslint-disable-next-line global-require
-    const OpenAI = require("openai").default
+    const { default: OpenAI } = await import(/* turbopackIgnore: true */ "openai")
     openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   }
   return openai
@@ -94,8 +92,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
     console.log("Starting OCR extraction for scanned/image-based PDF...");
 
     // Use pdf2pic to convert PDF buffer to images
-    // eslint-disable-next-line global-require
-    const pdf2pic = require("pdf2pic");
+    const pdf2pic = await import(/* turbopackIgnore: true */ "pdf2pic");
 
     tempImgDir = join(/*turbopackIgnore: true*/ "/tmp", `resume-imgs-${randomBytes(8).toString("hex")}`);
 
@@ -125,8 +122,7 @@ async function extractTextFromPdfWithOCR(buffer: Buffer): Promise<string> {
         const imagePath = pages[i].path;
 
         // Lazy-load Tesseract to avoid build-time module resolution
-        // eslint-disable-next-line global-require
-        const Tesseract = require("tesseract.js");
+        const Tesseract = await import(/* turbopackIgnore: true */ "tesseract.js");
 
         const ocrResult = await Tesseract.recognize(imagePath, "eng", {
           logger: (m: any) => {
@@ -188,8 +184,7 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
 
     // Use mammoth.js if available, else use a fallback
     try {
-      // eslint-disable-next-line global-require
-      const mammoth = require("mammoth");
+      const mammoth = await import(/* turbopackIgnore: true */ "mammoth");
       const result = await mammoth.extractRawText({ buffer });
 
       if (result.value && result.value.trim()) {
@@ -201,8 +196,7 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
     }
 
     // Fallback: try to extract text from DOCX as ZIP and parse XML
-    // eslint-disable-next-line global-require
-    const JSZip = require("jszip");
+    const { default: JSZip } = await import(/* turbopackIgnore: true */ "jszip");
     const zip = new JSZip();
     await zip.loadAsync(buffer);
 
@@ -297,7 +291,7 @@ export async function scoreResumeWithOpenAI(
     throw new Error("OPENAI_API_KEY is not configured.")
   }
 
-  const completion = await getOpenAI().chat.completions.create({
+  const completion = await (await getOpenAI()).chat.completions.create({
     model: "gpt-4o-mini",
     temperature: 0.2,
     max_tokens: 600,
@@ -355,7 +349,7 @@ export async function scoreResumeWithGroq(
     throw new Error("GROQ_API_KEY is not configured.")
   }
 
-  const completion = await getGroq().chat.completions.create({
+  const completion = await (await getGroq()).chat.completions.create({
     model: "llama-3.1-8b-instant",
     temperature: 0.2,
     max_tokens: 600,

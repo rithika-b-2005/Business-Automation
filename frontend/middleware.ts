@@ -36,8 +36,7 @@ function isProtected(pathname: string) {
 async function verifyJWT(token: string): Promise<{ valid: boolean; expired: boolean }> {
   try {
     // Lazy-load jose to avoid build-time module resolution
-    // eslint-disable-next-line global-require
-    const { jwtVerify } = require("jose")
+    const { jwtVerify } = await import(/* turbopackIgnore: true */ "jose")
     await jwtVerify(token, JWT_SECRET)
     return { valid: true, expired: false }
   } catch (e: any) {
